@@ -11,7 +11,7 @@ source:
   sha256: b153b1a14807267b22e3f8efbdad153cb08b51e9015a43105bb4cec8ea15359e
 
 build:
-  number: 0
+  number: 1
   script:
     - export CC="$GCC"         # [linux64 and cuda_compiler_version != 'None']
     - export NVCC_FLAGS="--compiler-bindir=${CC}"    # [linux64 and cuda_compiler_version != 'None']

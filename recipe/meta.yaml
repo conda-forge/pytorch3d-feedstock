@@ -48,6 +48,10 @@ requirements:
     - numpy                                  # [build_platform != target_platform]
     - pytorch                                # [build_platform != target_platform]
     - pytorch =*={{ torch_proc_type }}*      # [build_platform != target_platform]
+    {% if cuda_major >= 12 %}
+    - cuda-cudart-dev                       # [build_platform != target_platform]
+    - libcusparse-dev                       # [build_platform != target_platform]
+    {% endif %}
   host:
     - python
     - pip
@@ -57,6 +61,10 @@ requirements:
     - pytorch
     - pytorch =*={{ torch_proc_type }}*
     - cub                                    # [cuda_compiler_version != "None"]
+    {% if cuda_major >= 12 %}
+    - cuda-cudart-dev
+    - libcusparse-dev
+    {% endif %}
   run:
     - python
     - {{ pin_compatible('cudnn') }}          # [cuda_compiler_version != "None"]

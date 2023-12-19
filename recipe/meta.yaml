@@ -56,6 +56,7 @@ requirements:
     - pytorch =*={{ torch_proc_type }}*      # [build_platform != target_platform]
     {% if cuda_major >= 12 %}
     - libcusparse-dev                        # [build_platform != target_platform]
+    - libcusolver-dev                        # [build_platform != target_platform]
     - libcublas-dev                          # [build_platform != target_platform]
     {% endif %}
   host:
@@ -69,6 +70,7 @@ requirements:
     - cub                                    # [cuda_compiler_version != "None"]
     {% if cuda_major >= 12 %}
     - libcusparse-dev
+    - libcusolver-dev
     - libcublas-dev
     {% endif %}
   run:

@@ -73,6 +73,7 @@ requirements:
     - libcusolver-dev
     - libcublas-dev
     {% endif %}
+    - cuda-version {{ cuda_compiler_version }}  # [cuda_compiler_version != "None"]
   run:
     - python
     - {{ pin_compatible('cudnn') }}          # [cuda_compiler_version != "None"]

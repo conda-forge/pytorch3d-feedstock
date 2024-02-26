@@ -1,3 +1,7 @@
+azure:
+  # toggle for freeing up some extra space on the default Azure Pipelines
+  # linux image before running the Docker container for building
+  free_disk_space: true
 github:
   branch_name: main
   tooling_branch_name: main

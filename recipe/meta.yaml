@@ -1,4 +1,4 @@
-{% set version = "0.7.5" %}
+{% set version = "0.7.6" %}
 # see github.com/conda-forge/conda-forge.github.io/issues/1059 for naming discussion
 {% set torch_proc_type = "cpu" if cuda_compiler_version in ("None", None) else "cuda" %}
 
@@ -14,10 +14,10 @@ package:
 
 source:
   url: https://github.com/facebookresearch/pytorch3d/archive/v{{ version }}.tar.gz
-  sha256: 335c51933485e8bf44b88dbf07d0106c05362da8830cef3968983314db0645d5
+  sha256: fc4fb28bc421bb05e8b5bbf5de1b434b4cec506c76b8ea999785010a2371db59
 
 build:
-  number: 3
+  number: 0
   script:
     - export CC="$GCC"         # [linux64 and cuda_compiler_version != 'None']
     - export NVCC_FLAGS="--compiler-bindir=${CC}"    # [linux64 and cuda_compiler_version != 'None']
@@ -73,6 +73,7 @@ requirements:
     - libcusolver-dev
     - libcublas-dev
     {% endif %}
+    - cuda-version {{ cuda_compiler_version }}  # [cuda_compiler_version != "None"]
   run:
     - python
     - {{ pin_compatible('cudnn') }}          # [cuda_compiler_version != "None"]

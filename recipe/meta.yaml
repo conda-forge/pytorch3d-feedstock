@@ -17,20 +17,18 @@ source:
   sha256: fc4fb28bc421bb05e8b5bbf5de1b434b4cec506c76b8ea999785010a2371db59
 
 build:
-  number: 2
-  script:
-    - export CC="$GCC"         # [linux64 and cuda_compiler_version != 'None']
-    - export NVCC_FLAGS="--compiler-bindir=${CC}"    # [linux64 and cuda_compiler_version != 'None']
+  number: 3
+  script: {{ PYTHON }} -m pip install . -vv
+  script_env:
+    - CC=$GCC                             # [linux64 and cuda_compiler_version != 'None']
+    - NVCC_FLAGS=--compiler-bindir=${CC}  # [linux64 and cuda_compiler_version != 'None']
     # needs to be set or builds fails because _get_cuda_arch_flags from
     # https://github.com/pytorch/pytorch/blob/v2.0.0/torch/utils/cpp_extension.py#L1710
     # will try to determine the arches based on the non-existent-in-CI CUDA drivers
-    - export TORCH_CUDA_ARCH_LIST="3.5;5.0;6.0;6.1;7.0;7.5;8.0;8.6+PTX"      # [linux64 and cuda_compiler_version != 'None' and not (cuda_compiler_version or "").startswith("12")]
-    - export TORCH_CUDA_ARCH_LIST="5.0;6.0;6.1;7.0;7.5;8.0;8.6;8.9;9.0+PTX"  # [linux64 and cuda_compiler_version != 'None' and (cuda_compiler_version or "").startswith("12")]
-    - export FORCE_CUDA="1"  # [linux64 and cuda_compiler_version != 'None']
-    - {{ PYTHON }} -m pip install . -vv
-  # as of pytorch 1.13, conda-forge only builds for CUDA 11.2+, see
-  # https://github.com/conda-forge/conda-forge-pinning-feedstock/issues/3491
-  skip: true  # [win or cuda_compiler_version in ("10.2", "11.0", "11.1")]
+    - TORCH_CUDA_ARCH_LIST=3.5;5.0;6.0;6.1;7.0;7.5;8.0;8.6+PTX      # [linux64 and cuda_compiler_version != 'None' and not (cuda_compiler_version or "").startswith("12")]
+    - TORCH_CUDA_ARCH_LIST=5.0;6.0;6.1;7.0;7.5;8.0;8.6;8.9;9.0+PTX  # [linux64 and cuda_compiler_version != 'None' and (cuda_compiler_version or "").startswith("12")]
+    - FORCE_CUDA=1                                                  # [linux64 and cuda_compiler_version != 'None']
+  skip: true  # [win]
   string: cpu_py{{ CONDA_PY }}h{{ PKG_HASH }}_{{ PKG_BUILDNUM }}  # [cuda_compiler_version == "None"]
   string: cuda{{ cuda_compiler_version | replace('.', '') }}py{{ CONDA_PY }}h{{ PKG_HASH }}_{{ PKG_BUILDNUM }}  # [cuda_compiler_version != "None"]
   missing_dso_whitelist:
@@ -48,7 +46,7 @@ requirements:
     - {{ compiler('c') }}
     - {{ compiler('cxx') }}
     - {{ compiler('cuda') }}                 # [cuda_compiler_version != "None"]
-    - sysroot_linux-64 2.17                  # [linux64]
+    - {{ stdlib('c') }}
     - python                                 # [build_platform != target_platform]
     - cross-python_{{ target_platform }}     # [build_platform != target_platform]
     - numpy                                  # [build_platform != target_platform]
@@ -66,7 +64,7 @@ requirements:
     - cudnn                                  # [cuda_compiler_version != "None"]
     - numpy
     - pytorch
-    - pytorch =*=*{{ torch_proc_type }}*
+    - pytorch =*={{ torch_proc_type }}*
     - cub                                    # [cuda_compiler_version != "None"]
     {% if cuda_major >= 12 %}
     - libcusparse-dev
@@ -94,7 +92,7 @@ requirements:
     # we add the GPU constraint in the run_constrained
     # to allow us to have "two" constraints on the
     # running package
-    - pytorch =*=*{{ torch_proc_type }}*
+    - pytorch =*={{ torch_proc_type }}*
 
 test:
   imports:
@@ -133,3 +131,4 @@ about:
 extra:
   recipe-maintainers:
     - Tobias-Fischer
+    - weiji14

@@ -296,4 +296,5 @@ Feedstock Maintainers
 =====================
 
 * [@Tobias-Fischer](https://github.com/Tobias-Fischer/)
+* [@weiji14](https://github.com/weiji14/)
 

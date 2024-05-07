@@ -18,16 +18,16 @@ source:
 
 build:
   number: 3
-  script:
-    - export CC="$GCC"         # [linux64 and cuda_compiler_version != 'None']
-    - export NVCC_FLAGS="--compiler-bindir=${CC}"    # [linux64 and cuda_compiler_version != 'None']
+  script: {{ PYTHON }} -m pip install . -vv
+  script_env:
+    - CC=$GCC                             # [linux64 and cuda_compiler_version != 'None']
+    - NVCC_FLAGS=--compiler-bindir=${CC}  # [linux64 and cuda_compiler_version != 'None']
     # needs to be set or builds fails because _get_cuda_arch_flags from
     # https://github.com/pytorch/pytorch/blob/v2.0.0/torch/utils/cpp_extension.py#L1710
     # will try to determine the arches based on the non-existent-in-CI CUDA drivers
-    - export TORCH_CUDA_ARCH_LIST="3.5;5.0;6.0;6.1;7.0;7.5;8.0;8.6+PTX"      # [linux64 and cuda_compiler_version != 'None' and not (cuda_compiler_version or "").startswith("12")]
-    - export TORCH_CUDA_ARCH_LIST="5.0;6.0;6.1;7.0;7.5;8.0;8.6;8.9;9.0+PTX"  # [linux64 and cuda_compiler_version != 'None' and (cuda_compiler_version or "").startswith("12")]
-    - export FORCE_CUDA="1"  # [linux64 and cuda_compiler_version != 'None']
-    - {{ PYTHON }} -m pip install . -vv
+    - TORCH_CUDA_ARCH_LIST=3.5;5.0;6.0;6.1;7.0;7.5;8.0;8.6+PTX      # [linux64 and cuda_compiler_version != 'None' and not (cuda_compiler_version or "").startswith("12")]
+    - TORCH_CUDA_ARCH_LIST=5.0;6.0;6.1;7.0;7.5;8.0;8.6;8.9;9.0+PTX  # [linux64 and cuda_compiler_version != 'None' and (cuda_compiler_version or "").startswith("12")]
+    - FORCE_CUDA=1                                                  # [linux64 and cuda_compiler_version != 'None']
   skip: true  # [win]
   string: cpu_py{{ CONDA_PY }}h{{ PKG_HASH }}_{{ PKG_BUILDNUM }}  # [cuda_compiler_version == "None"]
   string: cuda{{ cuda_compiler_version | replace('.', '') }}py{{ CONDA_PY }}h{{ PKG_HASH }}_{{ PKG_BUILDNUM }}  # [cuda_compiler_version != "None"]

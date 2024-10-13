@@ -1,5 +1,5 @@
 __migrator:
-  build_number: 1
+  build_number: 2
   commit_message: Rebuild for cudnn 9
   kind: version
   migration_number: 1

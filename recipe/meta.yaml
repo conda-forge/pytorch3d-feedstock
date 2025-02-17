@@ -17,7 +17,7 @@ source:
   sha256: d1f51bb777d4b266cda73eebbb590d0ff86dad80ea0bbe747ced96062be68b33
 
 build:
-  number: 6
+  number: 7
   script: {{ PYTHON }} -m pip install . -vv
   script_env:
     - CC=$GCC                             # [linux64 and cuda_compiler_version != 'None']
@@ -25,10 +25,11 @@ build:
     # needs to be set or builds fails because _get_cuda_arch_flags from
     # https://github.com/pytorch/pytorch/blob/v2.0.0/torch/utils/cpp_extension.py#L1710
     # will try to determine the arches based on the non-existent-in-CI CUDA drivers
-    - TORCH_CUDA_ARCH_LIST=3.5;5.0;6.0;6.1;7.0;7.5;8.0;8.6+PTX      # [linux64 and cuda_compiler_version != 'None' and not (cuda_compiler_version or "").startswith("12")]
-    - TORCH_CUDA_ARCH_LIST=5.0;6.0;6.1;7.0;7.5;8.0;8.6;8.9;9.0+PTX  # [linux64 and cuda_compiler_version != 'None' and (cuda_compiler_version or "").startswith("12")]
+    - TORCH_CUDA_ARCH_LIST=5.0;6.0;6.1;7.0;7.5;8.0;8.6;8.9;9.0+PTX  # [linux64 and cuda_compiler_version != 'None']
     - FORCE_CUDA=1                                                  # [linux64 and cuda_compiler_version != 'None']
   skip: true  # [win]
+  # pytorch in conda-forge does not support CUDA 11.8 as of v2.5
+  skip: true  # [cuda_compiler_version == "11.8"]
   string: cpu_py{{ CONDA_PY }}h{{ PKG_HASH }}_{{ PKG_BUILDNUM }}  # [cuda_compiler_version == "None"]
   string: cuda{{ cuda_compiler_version | replace('.', '') }}py{{ CONDA_PY }}h{{ PKG_HASH }}_{{ PKG_BUILDNUM }}  # [cuda_compiler_version != "None"]
   missing_dso_whitelist:
@@ -65,7 +66,7 @@ requirements:
     - numpy
     - pytorch
     - pytorch =*={{ torch_proc_type }}*
-    - cub                                    # [cuda_compiler_version != "None"]
+    - cuda-cccl                              # [cuda_compiler_version != "None"]
     {% if cuda_major >= 12 %}
     - libcusparse-dev
     - libcusolver-dev

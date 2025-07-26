@@ -25,11 +25,9 @@ build:
     # needs to be set or builds fails because _get_cuda_arch_flags from
     # https://github.com/pytorch/pytorch/blob/v2.0.0/torch/utils/cpp_extension.py#L1710
     # will try to determine the arches based on the non-existent-in-CI CUDA drivers
-    - TORCH_CUDA_ARCH_LIST=5.0;6.0;6.1;7.0;7.5;8.0;8.6;8.9;9.0+PTX  # [linux64 and cuda_compiler_version != 'None']
-    - FORCE_CUDA=1                                                  # [linux64 and cuda_compiler_version != 'None']
+    - TORCH_CUDA_ARCH_LIST=5.0;6.0;7.0;7.5;8.0;8.6;9.0;10.0;12.0+PTX  # [linux64 and cuda_compiler_version != 'None']
+    - FORCE_CUDA=1                                                    # [linux64 and cuda_compiler_version != 'None']
   skip: true  # [win]
-  # pytorch in conda-forge does not support CUDA 11.8 as of v2.5
-  skip: true  # [cuda_compiler_version == "11.8"]
   string: cpu_py{{ CONDA_PY }}h{{ PKG_HASH }}_{{ PKG_BUILDNUM }}  # [cuda_compiler_version == "None"]
   string: cuda{{ cuda_compiler_version | replace('.', '') }}py{{ CONDA_PY }}h{{ PKG_HASH }}_{{ PKG_BUILDNUM }}  # [cuda_compiler_version != "None"]
   missing_dso_whitelist:
@@ -67,11 +65,9 @@ requirements:
     - pytorch
     - pytorch =*={{ torch_proc_type }}*
     - cuda-cccl                              # [cuda_compiler_version != "None"]
-    {% if cuda_major >= 12 %}
     - libcusparse-dev
     - libcusolver-dev
     - libcublas-dev
-    {% endif %}
     - cuda-version {{ cuda_compiler_version }}  # [cuda_compiler_version != "None"]
   run:
     - python
@@ -79,9 +75,7 @@ requirements:
     - torchvision
     - fvcore
     - iopath
-    {% if cuda_major >= 12 %}
     - cuda-cudart
-    {% endif %}
   run_constrained:
     # 2022/02/05 hmaarrfk
     # While conda packaging seems to allow us to specify

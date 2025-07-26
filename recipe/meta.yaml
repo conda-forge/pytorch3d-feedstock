@@ -51,31 +51,29 @@ requirements:
     - numpy                                  # [build_platform != target_platform]
     - pytorch                                # [build_platform != target_platform]
     - pytorch =*={{ torch_proc_type }}*      # [build_platform != target_platform]
-    {% if cuda_major >= 12 %}
-    - libcusparse-dev                        # [build_platform != target_platform]
-    - libcusolver-dev                        # [build_platform != target_platform]
-    - libcublas-dev                          # [build_platform != target_platform]
-    {% endif %}
+    - libcusparse-dev                        # [build_platform != target_platform and cuda_compiler_version != "None"]
+    - libcusolver-dev                        # [build_platform != target_platform and cuda_compiler_version != "None"]
+    - libcublas-dev                          # [build_platform != target_platform and cuda_compiler_version != "None"]
   host:
     - python
     - pip
     - setuptools
-    - cudnn                                  # [cuda_compiler_version != "None"]
     - numpy
     - pytorch
     - pytorch =*={{ torch_proc_type }}*
-    - cuda-cccl                              # [cuda_compiler_version != "None"]
-    - libcusparse-dev
-    - libcusolver-dev
-    - libcublas-dev
+    - cudnn                                     # [cuda_compiler_version != "None"]
+    - cuda-cccl                                 # [cuda_compiler_version != "None"]
+    - libcusparse-dev                           # [cuda_compiler_version != "None"]
+    - libcusolver-dev                           # [cuda_compiler_version != "None"]
+    - libcublas-dev                             # [cuda_compiler_version != "None"]
     - cuda-version {{ cuda_compiler_version }}  # [cuda_compiler_version != "None"]
   run:
     - python
-    - {{ pin_compatible('cudnn') }}          # [cuda_compiler_version != "None"]
+    - {{ pin_compatible('cudnn') }}              # [cuda_compiler_version != "None"]
+    - cuda-cudart                                # [cuda_compiler_version != "None"]
     - torchvision
     - fvcore
     - iopath
-    - cuda-cudart
   run_constrained:
     # 2022/02/05 hmaarrfk
     # While conda packaging seems to allow us to specify

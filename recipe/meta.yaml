@@ -27,6 +27,8 @@ build:
     # will try to determine the arches based on the non-existent-in-CI CUDA drivers
     - TORCH_CUDA_ARCH_LIST=5.0;6.0;7.0;7.5;8.0;8.6;9.0;10.0;12.0+PTX  # [linux64 and cuda_compiler_version != 'None']
     - FORCE_CUDA=1                                                    # [linux64 and cuda_compiler_version != 'None']
+  # Temporary, to avoid using too much resources of the CI during testing
+  skip: true  # [not win or not py==311]
   string: cpu_py{{ CONDA_PY }}h{{ PKG_HASH }}_{{ PKG_BUILDNUM }}  # [cuda_compiler_version == "None"]
   string: cuda{{ cuda_compiler_version | replace('.', '') }}py{{ CONDA_PY }}h{{ PKG_HASH }}_{{ PKG_BUILDNUM }}  # [cuda_compiler_version != "None"]
   missing_dso_whitelist:

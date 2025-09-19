@@ -18,7 +18,9 @@ source:
 
 build:
   number: 10
-  script: {{ PYTHON }} -m pip install . -vv
+  script:
+    - set CUDA_HOME=%LIBRARY_PREFIX%  # [win and cuda_compiler_version != 'None']
+    - {{ PYTHON }} -m pip install . -vv
   script_env:
     - CC=$GCC                             # [linux64 and cuda_compiler_version != 'None']
     - NVCC_FLAGS=--compiler-bindir=${CC}  # [linux64 and cuda_compiler_version != 'None']
@@ -26,7 +28,7 @@ build:
     # https://github.com/pytorch/pytorch/blob/v2.0.0/torch/utils/cpp_extension.py#L1710
     # will try to determine the arches based on the non-existent-in-CI CUDA drivers
     - TORCH_CUDA_ARCH_LIST=5.0;6.0;7.0;7.5;8.0;8.6;9.0;10.0;12.0+PTX  # [cuda_compiler_version != 'None']
-    - FORCE_CUDA=1                                                    # [duda_compiler_version != 'None']
+    - FORCE_CUDA=1                                                    # [cuda_compiler_version != 'None']
   # Temporary, to avoid using too much resources of the CI during testing
   skip: true  # [not win or not py==311]
   string: cpu_py{{ CONDA_PY }}h{{ PKG_HASH }}_{{ PKG_BUILDNUM }}  # [cuda_compiler_version == "None"]

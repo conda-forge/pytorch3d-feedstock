@@ -2,6 +2,11 @@ azure:
   # toggle for freeing up some extra space on the default Azure Pipelines
   # linux image before running the Docker container for building
   free_disk_space: true
+  # On Windows, free_disk_space is not available, but the C:\ partition
+  # has much more space
+  settings_win:
+    variables:
+      CONDA_BLD_PATH: C:\\bld\\
 github:
   branch_name: main
   tooling_branch_name: main

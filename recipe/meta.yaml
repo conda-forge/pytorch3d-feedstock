@@ -17,17 +17,21 @@ source:
   sha256: d1f51bb777d4b266cda73eebbb590d0ff86dad80ea0bbe747ced96062be68b33
 
 build:
-  number: 9
-  script: {{ PYTHON }} -m pip install . -vv
+  number: 10
+  script:
+    - set CUDA_HOME=%LIBRARY_PREFIX%  # [win and cuda_compiler_version != 'None']
+    - set CUB_HOME=%LIBRARY_INC%      # [win and cuda_compiler_version != 'None']
+    - {{ PYTHON }} -m pip install . -vv
   script_env:
     - CC=$GCC                             # [linux64 and cuda_compiler_version != 'None']
     - NVCC_FLAGS=--compiler-bindir=${CC}  # [linux64 and cuda_compiler_version != 'None']
     # needs to be set or builds fails because _get_cuda_arch_flags from
     # https://github.com/pytorch/pytorch/blob/v2.0.0/torch/utils/cpp_extension.py#L1710
     # will try to determine the arches based on the non-existent-in-CI CUDA drivers
-    - TORCH_CUDA_ARCH_LIST=5.0;6.0;7.0;7.5;8.0;8.6;9.0;10.0;12.0+PTX  # [linux64 and cuda_compiler_version != 'None']
-    - FORCE_CUDA=1                                                    # [linux64 and cuda_compiler_version != 'None']
-  skip: true  # [win]
+    - TORCH_CUDA_ARCH_LIST=5.0;6.0;7.0;7.5;8.0;8.6;9.0;10.0;12.0+PTX  # [cuda_compiler_version != 'None']
+    - FORCE_CUDA=1                                                    # [cuda_compiler_version != 'None']
+  # Temporary, to avoid using too much resources of the CI during testing
+  skip: true  # [not win or not py==311]
   string: cpu_py{{ CONDA_PY }}h{{ PKG_HASH }}_{{ PKG_BUILDNUM }}  # [cuda_compiler_version == "None"]
   string: cuda{{ cuda_compiler_version | replace('.', '') }}py{{ CONDA_PY }}h{{ PKG_HASH }}_{{ PKG_BUILDNUM }}  # [cuda_compiler_version != "None"]
   missing_dso_whitelist:

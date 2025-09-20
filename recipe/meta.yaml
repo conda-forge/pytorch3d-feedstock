@@ -20,6 +20,7 @@ build:
   number: 10
   script:
     - set CUDA_HOME=%LIBRARY_PREFIX%  # [win and cuda_compiler_version != 'None']
+    - set CUB_HOME=%LIBRARY_INC%      # [win and cuda_compiler_version != 'None']
     - {{ PYTHON }} -m pip install . -vv
   script_env:
     - CC=$GCC                             # [linux64 and cuda_compiler_version != 'None']

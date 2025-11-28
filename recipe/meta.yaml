@@ -1,4 +1,4 @@
-{% set version = "0.7.7" %}
+{% set version = "0.7.9" %}
 # see github.com/conda-forge/conda-forge.github.io/issues/1059 for naming discussion
 {% set torch_proc_type = "cpu" if cuda_compiler_version in ("None", None) else "cuda" %}
 
@@ -14,10 +14,10 @@ package:
 
 source:
   url: https://github.com/facebookresearch/pytorch3d/archive/v{{ version }}.tar.gz
-  sha256: d1f51bb777d4b266cda73eebbb590d0ff86dad80ea0bbe747ced96062be68b33
+  sha256: 96c1ef357c522e1f45b5f9c27bae9b75185034457ddbcacdd343a0ec50bc515f
 
 build:
-  number: 12
+  number: 0
   script: {{ PYTHON }} -m pip install . -vv
   script_env:
     - CC=$GCC                             # [linux64 and cuda_compiler_version != 'None']

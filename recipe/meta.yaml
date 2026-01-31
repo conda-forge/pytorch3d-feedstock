@@ -17,7 +17,7 @@ source:
   sha256: 96c1ef357c522e1f45b5f9c27bae9b75185034457ddbcacdd343a0ec50bc515f
 
 build:
-  number: 1
+  number: 2
   script: {{ PYTHON }} -m pip install . -vv
   script_env:
     - CC=$GCC                             # [linux64 and cuda_compiler_version != 'None']

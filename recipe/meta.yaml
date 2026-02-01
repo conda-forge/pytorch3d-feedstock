@@ -19,7 +19,7 @@ source:
     - cuda-13-support.patch  # [linux64 and (cuda_compiler_version or "").startswith("13")]
 
 build:
-  number: 2
+  number: 3
   script: {{ PYTHON }} -m pip install . -vv
   script_env:
     - CC=$GCC                             # [linux64 and cuda_compiler_version != 'None']

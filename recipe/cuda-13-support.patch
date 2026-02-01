@@ -1,0 +1,67 @@
+From f5f6b78e70e0a1b70f3be9a09b5b001e9b3a7a03 Mon Sep 17 00:00:00 2001
+From: Guilherme Albertini <gbertini@meta.com>
+Date: Wed, 17 Dec 2025 10:02:10 -0800
+Subject: [PATCH] Add initial CUDA 13.0 support for pulsar and pycuda modules
+
+Summary:
+CUDA 13.0 introduced breaking changes that cause build failures in pytorch3d:
+
+**1. Symbol Visibility Changes (pulsar)**
+- NVCC now forces `__global__` functions to have hidden ELF visibility by default
+- `__global__` function template stubs now have internal linkage
+
+**Fix:** Added NVCC flags (`--device-entity-has-hidden-visibility=false` and `-static-global-template-stub=false`) for fbcode builds with CUDA 13.0+.
+
+**2. cuCtxCreate API Change (pycuda)**
+- CUDA 13.0 changed `cuCtxCreate` from 3 to 4 arguments
+- pycuda 2022.2 (current default) uses the old signature and fails to compile
+- pycuda 2025.1.2 (D83501913) includes the CUDA 13.0 fix
+
+**Fix:** Added CUDA 13.0 constraint to pycuda alias to auto-select pycuda 2025.1.2.
+
+**NCCL Compatibility Note:**
+- Current stable NCCL (2.25) is NOT compatible with CUDA 13.0 (`cudaTypedefs.h` removed)
+- NCCL 2.27+ works with CUDA 13.0 and will become stable in early January 2026 (per HPC Comms team)
+- Until then, CUDA 13.0 builds require `-c hpc_comms.use_nccl=2.27`
+
+References:
+- GitHub issue: https://github.com/facebookresearch/pytorch3d/issues/2011
+- NVIDIA blog: https://developer.nvidia.com/blog/cuda-c-compiler-updates-impacting-elf-visibility-and-linkage/
+- FBGEMM_GPU fix: D86474263
+- pycuda 2025.1.2 buckification: D83501913
+
+Reviewed By: bottler
+
+Differential Revision: D88816596
+
+fbshipit-source-id: 1ba666dab8c0e06d1286b8d5bc5d84cfc55c86e6
+---
+ setup.py | 15 +++++++++++++++
+ 1 file changed, 15 insertions(+)
+
+diff --git a/setup.py b/setup.py
+index 5a6201ae..dac3493c 100755
+--- a/setup.py
++++ b/setup.py
+@@ -75,6 +75,21 @@ def get_extensions():
+         ]
+         if os.name != "nt":
+             nvcc_args.append("-std=c++17")
++
++        # CUDA 13.0+ compatibility flags for pulsar.
++        # Starting with CUDA 13, __global__ function visibility changed.
++        # See: https://developer.nvidia.com/blog/
++        #      cuda-c-compiler-updates-impacting-elf-visibility-and-linkage/
++        cuda_version = torch.version.cuda
++        if cuda_version is not None:
++            major = int(cuda_version.split(".")[0])
++            if major >= 13:
++                nvcc_args.extend(
++                    [
++                        "--device-entity-has-hidden-visibility=false",
++                        "-static-global-template-stub=false",
++                    ]
++                )
+         if cub_home is None:
+             prefix = os.environ.get("CONDA_PREFIX", None)
+             if prefix is not None and os.path.isdir(prefix + "/include/cub"):

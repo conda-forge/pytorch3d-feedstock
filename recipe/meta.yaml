@@ -15,9 +15,11 @@ package:
 source:
   url: https://github.com/facebookresearch/pytorch3d/archive/v{{ version }}.tar.gz
   sha256: 96c1ef357c522e1f45b5f9c27bae9b75185034457ddbcacdd343a0ec50bc515f
+  patches:
+    - cuda-13-support.patch  # [linux64 and (cuda_compiler_version or "").startswith("13")]
 
 build:
-  number: 2
+  number: 3
   script: {{ PYTHON }} -m pip install . -vv
   script_env:
     - CC=$GCC                             # [linux64 and cuda_compiler_version != 'None']
@@ -25,7 +27,8 @@ build:
     # needs to be set or builds fails because _get_cuda_arch_flags from
     # https://github.com/pytorch/pytorch/blob/v2.0.0/torch/utils/cpp_extension.py#L1710
     # will try to determine the arches based on the non-existent-in-CI CUDA drivers
-    - TORCH_CUDA_ARCH_LIST=5.0;6.0;7.0;7.5;8.0;8.6;9.0;10.0;12.0+PTX  # [linux64 and cuda_compiler_version != 'None']
+    - TORCH_CUDA_ARCH_LIST=5.0;6.0;7.0;7.5;8.0;8.6;9.0;10.0;12.0+PTX  # [linux64 and (cuda_compiler_version or "").startswith("12")]
+    - TORCH_CUDA_ARCH_LIST=7.5;8.0;8.6;9.0;10.0;12.0+PTX              # [linux64 and (cuda_compiler_version or "").startswith("13")]
     - FORCE_CUDA=1                                                    # [linux64 and cuda_compiler_version != 'None']
   skip: true  # [win]
   string: cpu_py{{ CONDA_PY }}h{{ PKG_HASH }}_{{ PKG_BUILDNUM }}  # [cuda_compiler_version == "None"]

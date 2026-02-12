@@ -75,6 +75,7 @@ requirements:
     - torchvision
     - fvcore
     - iopath
+    - __cuda                                     # [cuda_compiler_version != "None"]
   run_constrained:
     # 2022/02/05 hmaarrfk
     # While conda packaging seems to allow us to specify

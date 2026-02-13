@@ -14,9 +14,7 @@ source:
 
 build:
   number: 4
-  script:
-    # - set CUDA_HOME=%LIBRARY_PREFIX%  # [win and cuda_compiler_version != 'None']
-    - {{ PYTHON }} -m pip install . -vv
+  script: {{ PYTHON }} -m pip install . -vv
   script_env:
     - CC=$GCC                             # [linux64 and cuda_compiler_version != 'None']
     - NVCC_FLAGS=--compiler-bindir=${CC}  # [linux64 and cuda_compiler_version != 'None']
@@ -26,8 +24,6 @@ build:
     - TORCH_CUDA_ARCH_LIST=5.0;6.0;7.0;7.5;8.0;8.6;9.0;10.0;12.0+PTX  # [(cuda_compiler_version or "").startswith("12")]
     - TORCH_CUDA_ARCH_LIST=7.5;8.0;8.6;9.0;10.0;12.0+PTX              # [(cuda_compiler_version or "").startswith("13")]
     - FORCE_CUDA=1                                                    # [cuda_compiler_version != 'None']
-  # Temporary, to avoid using too much resources of the CI during testing
-  skip: true  # [not win or not py==311]
   string: cpu_py{{ CONDA_PY }}h{{ PKG_HASH }}_{{ PKG_BUILDNUM }}  # [cuda_compiler_version == "None"]
   string: cuda{{ cuda_compiler_version | replace('.', '') }}py{{ CONDA_PY }}h{{ PKG_HASH }}_{{ PKG_BUILDNUM }}  # [cuda_compiler_version != "None"]
   missing_dso_whitelist:

@@ -2,12 +2,6 @@
 # see github.com/conda-forge/conda-forge.github.io/issues/1059 for naming discussion
 {% set torch_proc_type = "cpu" if cuda_compiler_version in ("None", None) else "cuda" %}
 
-{% if cuda_compiler_version in (None, "None", True, False) %}
-{% set cuda_major = 0 %}
-{% else %}
-{% set cuda_major = environ.get("cuda_compiler_version", "11.8").split(".")[0] | int %}
-{% endif %}
-
 package:
   name: pytorch3d
   version: {{ version }}
@@ -16,10 +10,10 @@ source:
   url: https://github.com/facebookresearch/pytorch3d/archive/v{{ version }}.tar.gz
   sha256: 96c1ef357c522e1f45b5f9c27bae9b75185034457ddbcacdd343a0ec50bc515f
   patches:
-    - cuda-13-support.patch  # [linux64 and (cuda_compiler_version or "").startswith("13")]
+    - cuda-13-support.patch  # [(cuda_compiler_version or "").startswith("13")]
 
 build:
-  number: 3
+  number: 4
   script: {{ PYTHON }} -m pip install . -vv
   script_env:
     - CC=$GCC                             # [linux64 and cuda_compiler_version != 'None']
@@ -27,10 +21,9 @@ build:
     # needs to be set or builds fails because _get_cuda_arch_flags from
     # https://github.com/pytorch/pytorch/blob/v2.0.0/torch/utils/cpp_extension.py#L1710
     # will try to determine the arches based on the non-existent-in-CI CUDA drivers
-    - TORCH_CUDA_ARCH_LIST=5.0;6.0;7.0;7.5;8.0;8.6;9.0;10.0;12.0+PTX  # [linux64 and (cuda_compiler_version or "").startswith("12")]
-    - TORCH_CUDA_ARCH_LIST=7.5;8.0;8.6;9.0;10.0;12.0+PTX              # [linux64 and (cuda_compiler_version or "").startswith("13")]
-    - FORCE_CUDA=1                                                    # [linux64 and cuda_compiler_version != 'None']
-  skip: true  # [win]
+    - TORCH_CUDA_ARCH_LIST=5.0;6.0;7.0;7.5;8.0;8.6;9.0;10.0;12.0+PTX  # [(cuda_compiler_version or "").startswith("12")]
+    - TORCH_CUDA_ARCH_LIST=7.5;8.0;8.6;9.0;10.0;12.0+PTX              # [(cuda_compiler_version or "").startswith("13")]
+    - FORCE_CUDA=1                                                    # [cuda_compiler_version != 'None']
   string: cpu_py{{ CONDA_PY }}h{{ PKG_HASH }}_{{ PKG_BUILDNUM }}  # [cuda_compiler_version == "None"]
   string: cuda{{ cuda_compiler_version | replace('.', '') }}py{{ CONDA_PY }}h{{ PKG_HASH }}_{{ PKG_BUILDNUM }}  # [cuda_compiler_version != "None"]
   missing_dso_whitelist:
@@ -49,6 +42,7 @@ requirements:
     - {{ compiler('cxx') }}
     - {{ compiler('cuda') }}                 # [cuda_compiler_version != "None"]
     - {{ stdlib('c') }}
+    - cuda-version {{ cuda_compiler_version }}  # [cuda_compiler_version != "None"]
     - python                                 # [build_platform != target_platform]
     - cross-python_{{ target_platform }}     # [build_platform != target_platform]
     - numpy                                  # [build_platform != target_platform]
@@ -77,6 +71,7 @@ requirements:
     - torchvision
     - fvcore
     - iopath
+    - __cuda                                     # [cuda_compiler_version != "None"]
   run_constrained:
     # 2022/02/05 hmaarrfk
     # While conda packaging seems to allow us to specify

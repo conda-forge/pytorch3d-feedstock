@@ -21,7 +21,10 @@ build:
     # needs to be set or builds fails because _get_cuda_arch_flags from
     # https://github.com/pytorch/pytorch/blob/v2.0.0/torch/utils/cpp_extension.py#L1710
     # will try to determine the arches based on the non-existent-in-CI CUDA drivers
-    - TORCH_CUDA_ARCH_LIST=5.0;6.0;7.0;7.5;8.0;8.6;9.0;10.0;12.0+PTX  # [(cuda_compiler_version or "").startswith("12")]
+    - TORCH_CUDA_ARCH_LIST=5.0;6.0;7.0;7.5;8.0;8.6;9.0;10.0;12.0+PTX  # [(cuda_compiler_version or "").startswith("12") and linux]
+    # Windows fails with CUDA header error for 12.0
+    # clusterlaunchcontrol.h(78): error: asm operand type size(4) does not match type/size implied by constraint 'l'
+    - TORCH_CUDA_ARCH_LIST=5.0;6.0;7.0;7.5;8.0;8.6;9.0;10.0+PTX       # [(cuda_compiler_version or "").startswith("12") and win]
     - TORCH_CUDA_ARCH_LIST=7.5;8.0;8.6;9.0;10.0;12.0+PTX              # [(cuda_compiler_version or "").startswith("13")]
     - FORCE_CUDA=1                                                    # [cuda_compiler_version != 'None']
   string: cpu_py{{ CONDA_PY }}h{{ PKG_HASH }}_{{ PKG_BUILDNUM }}  # [cuda_compiler_version == "None"]

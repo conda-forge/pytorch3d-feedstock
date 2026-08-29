@@ -1,0 +1,121 @@
+schema_version: 1
+
+context:
+  version: "0.7.9"
+  build_number: 8
+  torch_proc_type: ${{ "cpu" if cuda_compiler_version == "None" else "cuda" }}
+  build_prefix: ${{ "cpu_" if cuda_compiler_version == "None" else "cuda" ~ (cuda_compiler_version | replace(".", "")) }}
+
+package:
+  name: pytorch3d
+  version: ${{ version }}
+
+source:
+  url: https://github.com/facebookresearch/pytorch3d/archive/v${{ version }}.tar.gz
+  sha256: 96c1ef357c522e1f45b5f9c27bae9b75185034457ddbcacdd343a0ec50bc515f
+  patches:
+    - if: match(cuda_compiler_version, "13.*")
+      then: cuda-13-support.patch
+
+build:
+  number: ${{ build_number }}
+  string: ${{ build_prefix ~ "py" ~ (python | version_to_buildstring) ~ "h" ~ hash ~ "_" ~ build_number }}
+  script:
+    - if: linux and cuda_compiler_version != "None"
+      then: export CC="${GCC}"
+    - if: linux and cuda_compiler_version != "None"
+      then: export NVCC_FLAGS="--compiler-bindir=${CC}"
+    # Keep this aligned with the architectures supported by conda-forge's PyTorch builds.
+    - if: linux and match(cuda_compiler_version, "12.*")
+      then: export TORCH_CUDA_ARCH_LIST="5.0;6.0;7.0;7.5;8.0;8.6;9.0;10.0;12.0+PTX"
+    - if: win and match(cuda_compiler_version, "12.*")
+      then: set "TORCH_CUDA_ARCH_LIST=5.0;6.0;7.0;7.5;8.0;8.6;9.0+PTX"
+    - if: unix and match(cuda_compiler_version, "13.*")
+      then: export TORCH_CUDA_ARCH_LIST="7.5;8.0;8.6;9.0;10.0;12.0+PTX"
+    - if: win and match(cuda_compiler_version, "13.*")
+      then: set "TORCH_CUDA_ARCH_LIST=7.5;8.0;8.6;9.0;10.0;12.0+PTX"
+    - if: unix and cuda_compiler_version != "None"
+      then: export FORCE_CUDA=1
+    - if: win and cuda_compiler_version != "None"
+      then: set "FORCE_CUDA=1"
+    - python -m pip install . --no-deps --no-build-isolation -vv
+  dynamic_linking:
+    # PyTorch installs these libraries in a nonstandard location.
+    missing_dso_allowlist:
+      - "*/libc10${{ SHLIB_EXT }}"
+      - "*/libc10_cuda${{ SHLIB_EXT }}"
+      - "*/libtorch${{ SHLIB_EXT }}"
+      - "*/libtorch_cpu${{ SHLIB_EXT }}"
+      - "*/libtorch_cuda${{ SHLIB_EXT }}"
+      - "*/libtorch_python${{ SHLIB_EXT }}"
+
+requirements:
+  build:
+    - ${{ compiler('c') }}
+    - ${{ compiler('cxx') }}
+    - ${{ stdlib('c') }}
+    - if: cuda_compiler_version != "None"
+      then: ${{ compiler('cuda') }}
+    - if: cuda_compiler_version != "None"
+      then: cuda-version ==${{ cuda_compiler_version }}
+    - if: build_platform != target_platform
+      then:
+        - python
+        - cross-python_${{ target_platform }}
+        - numpy
+        - pytorch
+        - pytorch * ${{ torch_proc_type }}*
+    - if: build_platform != target_platform and cuda_compiler_version != "None"
+      then:
+        - libcusparse-dev
+        - libcusolver-dev
+        - libcublas-dev
+  host:
+    - python
+    - pip
+    - setuptools
+    - numpy
+    - pytorch
+    - pytorch * ${{ torch_proc_type }}*
+    - if: cuda_compiler_version != "None"
+      then:
+        - cudnn
+        - cuda-cccl
+        - libcusparse-dev
+        - libcusolver-dev
+        - libcublas-dev
+        - cuda-version ==${{ cuda_compiler_version }}
+  run:
+    - python
+    - if: cuda_compiler_version != "None"
+      then:
+        - ${{ pin_compatible('cudnn') }}
+        - cuda-cudart
+        - __cuda
+    - torchvision
+    - fvcore
+    - iopath
+  run_constraints:
+    # Add the CPU/GPU flavor constraint alongside PyTorch's version run export.
+    - pytorch * ${{ torch_proc_type }}*
+
+tests:
+  - python:
+      imports:
+        - pytorch3d
+      pip_check: true
+  - script:
+      - python -c "from pytorch3d import _C; assert _C is not None"
+
+about:
+  homepage: https://github.com/facebookresearch/pytorch3d
+  repository: https://github.com/facebookresearch/pytorch3d
+  summary: 3D geometry for PyTorch
+  license: BSD-3-Clause
+  license_file: LICENSE
+
+extra:
+  feedstock-name: pytorch3d
+  recipe-maintainers:
+    - Tobias-Fischer
+    - weiji14

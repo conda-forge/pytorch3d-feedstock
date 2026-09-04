@@ -42,7 +42,8 @@ call :start_group "Configuring conda"
 
 :: Activate the base conda environment
 echo Activating environment
-call "%MINIFORGE_HOME%\Scripts\activate.bat"
+set "CONDA_EXE=%MINIFORGE_HOME%\Scripts\conda.exe"
+call "%MINIFORGE_HOME%\condabin\conda.bat" activate "%MINIFORGE_HOME%"
 :: Configure the solver
 set "CONDA_SOLVER=libmamba"
 if !errorlevel! neq 0 exit /b !errorlevel!
@@ -61,6 +62,11 @@ if !errorlevel! neq 0 exit /b !errorlevel!
 if EXIST LICENSE.txt (
     echo Copying feedstock license
     copy LICENSE.txt "recipe\\recipe-scripts-license.txt"
+)
+if NOT [%HOST_PLATFORM%] == [%BUILD_PLATFORM%] (
+    if [%CROSSCOMPILING_EMULATOR%] == [] (
+        set "EXTRA_CB_OPTIONS=%EXTRA_CB_OPTIONS% --test skip"
+    )
 )
 
 if NOT [%flow_run_id%] == [] (

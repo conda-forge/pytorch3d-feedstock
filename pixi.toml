@@ -28,7 +28,7 @@ description = "Lint the feedstock recipe"
 
 [feature.build.dependencies]
 conda-build = ">=26.3"
-conda-forge-ci-setup = "4.*"
+conda-forge-ci-setup = ">=4.30,<5"
 rattler-build = "*"
 
 [feature.build.tasks.inspect-all]

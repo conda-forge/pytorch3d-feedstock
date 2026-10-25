@@ -2,7 +2,7 @@ schema_version: 1
 
 context:
   version: "0.7.9"
-  build_number: 8
+  build_number: 9
   torch_proc_type: ${{ "cpu" if cuda_compiler_version == "None" else "cuda" }}
   build_prefix: ${{ "cpu_" if cuda_compiler_version == "None" else "cuda" ~ (cuda_compiler_version | replace(".", "")) }}
 
@@ -14,18 +14,21 @@ source:
   url: https://github.com/facebookresearch/pytorch3d/archive/v${{ version }}.tar.gz
   sha256: 96c1ef357c522e1f45b5f9c27bae9b75185034457ddbcacdd343a0ec50bc515f
   patches:
-    - if: match(cuda_compiler_version, "13.*")
-      then: cuda-13-support.patch
+    # Only takes effect when building against CUDA >= 13.
+    - cuda-13-support.patch
+    # PyTorch >= 2.14 requires C++20.
+    - cxx20.patch
 
 build:
   number: ${{ build_number }}
+  # PyTorch 2.14 on Windows is only built for CUDA 13.x.
+  skip: win and match(cuda_compiler_version, "12.*")
   string: ${{ build_prefix ~ "py" ~ (python | version_to_buildstring) ~ "h" ~ hash ~ "_" ~ build_number }}
   script:
     - if: linux and cuda_compiler_version != "None"
-      then: export CC="${GCC}"
-    - if: linux and cuda_compiler_version != "None"
-      then: export NVCC_FLAGS="--compiler-bindir=${CC}"
-    # Keep this aligned with the architectures supported by conda-forge's PyTorch builds.
+      then:
+        - export CC="${GCC}"
+        - export NVCC_FLAGS="--compiler-bindir=${CC}"
     - if: linux and match(cuda_compiler_version, "12.*")
       then: export TORCH_CUDA_ARCH_LIST="5.0;6.0;7.0;7.5;8.0;8.6;9.0;10.0;12.0+PTX"
     - if: win and match(cuda_compiler_version, "12.*")
@@ -34,6 +37,9 @@ build:
       then: export TORCH_CUDA_ARCH_LIST="7.5;8.0;8.6;9.0;10.0;12.0+PTX"
     - if: win and match(cuda_compiler_version, "13.*")
       then: set "TORCH_CUDA_ARCH_LIST=7.5;8.0;8.6;9.0;10.0;12.0+PTX"
+    # CCCL requires MSVC's standard-conforming preprocessor.
+    - if: win and cuda_compiler_version != "None"
+      then: set "NVCC_FLAGS=-Xcompiler /Zc:preprocessor"
     - if: unix and cuda_compiler_version != "None"
       then: export FORCE_CUDA=1
     - if: win and cuda_compiler_version != "None"
@@ -55,9 +61,9 @@ requirements:
     - ${{ compiler('cxx') }}
     - ${{ stdlib('c') }}
     - if: cuda_compiler_version != "None"
-      then: ${{ compiler('cuda') }}
-    - if: cuda_compiler_version != "None"
-      then: cuda-version ==${{ cuda_compiler_version }}
+      then:
+        - ${{ compiler('cuda') }}
+        - cuda-version ==${{ cuda_compiler_version }}
     - if: build_platform != target_platform
       then:
         - python
@@ -65,11 +71,11 @@ requirements:
         - numpy
         - pytorch
         - pytorch * ${{ torch_proc_type }}*
-    - if: build_platform != target_platform and cuda_compiler_version != "None"
-      then:
-        - libcusparse-dev
-        - libcusolver-dev
-        - libcublas-dev
+        - if: cuda_compiler_version != "None"
+          then:
+            - libcusparse-dev
+            - libcusolver-dev
+            - libcublas-dev
   host:
     - python
     - pip

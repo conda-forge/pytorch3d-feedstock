@@ -4,6 +4,7 @@ github:
 conda_build:
   error_overlinking: true
 conda_build_tool: rattler-build
+conda_install_tool: pixi
 conda_forge_output_validation: true
 provider:
   linux_aarch64: default
